@@ -1,6 +1,5 @@
-## intersystems-objectscript-template
-This is a template for InterSystems ObjectScript Github repository.
-The template goes also with a few files which let you immediately compile your ObjectScript files in InterSystems IRIS Community Edition in a docker container
+## Advent of Code 2023
+This is Chris Stewart's space for Advent of Code 2023.   This code is offered without warranty or expectation of support.  If you want to try to follow Advent of Code, then follow the instructions below to grab a copy of the template
 
 ## Prerequisites
 Make sure you have [git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git) and [Docker desktop](https://www.docker.com/products/docker-desktop) installed.
