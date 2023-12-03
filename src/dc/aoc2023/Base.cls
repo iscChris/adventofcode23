@@ -1,7 +1,7 @@
 Class doc.aoc2023.Base
 {
 
-Parameter Folder = "/irisdev/app/data/";
+Parameter Folder = "/home/irisowner/dev/data/";
 
 ClassMethod GetInput(fn) As %Stream.FileCharacter
 {
