@@ -26,7 +26,6 @@ ClassMethod Run(part As %Integer = 1) As %Integer
     //Setup all reference globals
 	While 'stream.AtEnd {
 		Set line=stream.ReadLine()
-        
         set stripcond = "=W"
         set:part=2 stripcond="*W"
         Set line =$ZSTRIP(line,stripcond) //get rid of repeat whitespaces
@@ -45,30 +44,22 @@ ClassMethod Run(part As %Integer = 1) As %Integer
         for i=1:1:racetime {
             if ((i*1)*(racetime-i)>=targetdist) { 
                 d $INCREMENT(wins)
-                d $INCREMENT(^raceresults)
             }
         }
         w !,"Wins counted "_wins,!
-        
-     
-
         set ^raceresults(raceno)=wins
     }
 
     //Parse out seeds
     Set count = 0
     Set seedvalue=""
-    
-    zw ^raceresults
-   
-     Set racekey = "" 
-        Set racekey=$ORDER(^raceresults(racekey)) //Prime the first run
-        Set count = ^raceresults(racekey)
+    Set racekey = "" 
+    Set racekey=$ORDER(^raceresults(racekey)) //Prime the first run
+    Set count = ^raceresults(racekey)
         For   {
             Set racekey=$ORDER(^raceresults(racekey))
             Quit:racekey=""
             Set count=count*^raceresults(racekey) 
-
         }
      Write !,"returning results: "_count,!
     Quit count
