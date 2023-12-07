@@ -19,7 +19,7 @@ Parameter HighCard = 7;
 
 ClassMethod ParseValue(line)
 {
-    // check count ones
+    // split out array into occurences
     For i=1:1:5 Do $INCREMENT(handvalues($EXTRACT(line,i)))
 
     Set key = ""
@@ -30,14 +30,14 @@ ClassMethod ParseValue(line)
         Do $INCREMENT(count)
     
     }
-    If count=1 Quit ..#FiveKind //5kind
+    If count=1 Quit ..#FiveKind 
     If count=2 {
-      
-        Set firstvalue = handvalues($ORDER(handvalues("")))
-        If ",2,3" [firstvalue { Quit ..#FullHouse} //Full House
-        ElseIf ",1,4" [ firstvalue {  Quit ..#FourKind} //4kind
+        Set firstvalue = handvalues($ORDER(handvalues(""))) //get an occurence, will either be 4A1B or 3A2B
+        If ",2,3" [firstvalue { Quit ..#FullHouse} //3A2B
+        ElseIf ",1,4" [ firstvalue {  Quit ..#FourKind} //4A1B
     }
     If count=3 {
+        //will be AAABC or AABBC, check for the number of "2"s to see which
         Set twos = 0
         Set key2=""
          For   {
@@ -47,16 +47,17 @@ ClassMethod ParseValue(line)
     
         } 
         If twos = 2 {
-            Quit ..#TwoPair //2pair
+            Quit ..#TwoPair //AABBC
         } Else {
-            Quit ..#ThreeKind //3kind
+            Quit ..#ThreeKind //AAABC
         }
     }
     If count=4 {
-        Quit ..#Pair //pair
+        //only 1 permutation AABCD
+        Quit ..#Pair 
     }
      If count=5 {
-      
+        //only 1 permutation ABCDE
        Quit ..#HighCard //highcard
     }
     Quit "unknown"
@@ -64,8 +65,7 @@ ClassMethod ParseValue(line)
 
 ClassMethod ParseValue2(line)
 {
-    // check count ones
-     // check count ones
+    // as part 1, get the occurences
     For i=1:1:5 Do $INCREMENT(handvalues($EXTRACT(line,i)))
 
     Set key = ""
@@ -76,51 +76,53 @@ ClassMethod ParseValue2(line)
         Do $INCREMENT(count)
     
     }
-    If count=1 Quit ..#FiveKind //5kind
+    If count=1 Quit ..#FiveKind //AAAAA, this is unchanged even if it's JJJJJ
     If count=2 {
-      
+        //more possibilites now AAABB,AAAAB,AAAAJ,AAAJJ,JJJAA
         Set firstvalue = handvalues($ORDER(handvalues("")))
         If ",2,3" [firstvalue { 
-            If $DATA(handvalues("J")) Quit ..#FiveKind
-            Quit ..#FullHouse} //Full House
+            If $DATA(handvalues("J")) Quit ..#FiveKind //AAAJJ | AAJJJ
+            Quit ..#FullHouse} //AAABB
         ElseIf ",1,4" [ firstvalue { 
-            if $DATA(handvalues("J")) quit ..#FiveKind //Four and wild or viceversa is a five of a kind
-            Quit ..#FourKind} //4kind
+            if $DATA(handvalues("J")) quit ..#FiveKind //AAAAJ | JJJJA
+            Quit ..#FourKind} //AAAAB
     }
     If count=3 {
+         //more possibilites now AAABC, AABBC, AAABJ,AABBJ,ABJJJ,AABJJ
         Set twos = 0
         Set key2=""
-         For   {
+        For   {
             Set key2 = $ORDER(handvalues(key2))
             Quit:key2=""
             Do:handvalues(key2)=2 $INCREMENT(twos)
-    
         } 
-         
+        //Process if there are 2 pairs     
         If twos = 2 {
             If $DATA(handvalues("J")){
-                If handvalues("J")>=2 {Quit ..#FourKind}
-                Else {Quit ..#FullHouse}
+                If handvalues("J")>=2 {Quit ..#FourKind} //AABJJ | ABJJJ
+                Else {Quit ..#FullHouse} //AABBJ
             }
-            Quit ..#TwoPair //2pair
+            Quit ..#TwoPair //2pair //AABBC
         } Else {
              If $DATA(handvalues("J")){
-                Quit ..#FourKind 
+                Quit ..#FourKind  //AAABJ
             }
-            Quit ..#ThreeKind //3kind
+            Quit ..#ThreeKind //AAABC
         }
     }
     If count=4 {
+          //one more possibilites now AABCD, AABCJ
         if $GET(handvalues("J"),0){
-            quit ..#ThreeKind
+            quit ..#ThreeKind //AABCJ
         }
-        Quit ..#Pair //pair
+        Quit ..#Pair //AABCD
     }
-     If count=5 {
+    If count=5 {
+        //one more possibity, ABCDE, ABCDJ
         If $GET(handvalues("J"),0){
-            Quit ..#Pair
+            Quit ..#Pair //ABCDJ
         }
-       Quit ..#HighCard //highcard
+       Quit ..#HighCard //ABCDE
     }
     Quit "unknown"
 }
@@ -141,8 +143,7 @@ ClassMethod Run() As %Integer
         set bet= $PIECE(line," ",2)
         Set ^hands(hand)="" //store hand and bid
         set cardrank  =..ParseValue(hand)
-        Write !,hand_"  is a "_cardrank
-        s rankedcard(cardrank,hand)=bet
+        set rankedcard(cardrank,hand)=bet
 
     }
     //2 loops, backwards through ranks, then forward through cards (lowest first)
@@ -187,11 +188,10 @@ ClassMethod Run2() As %Integer
 	While 'stream.AtEnd {
     
 	    Set line=stream.ReadLine()
-        Set hand = $TRANSLATE($PIECE(line," ",1),"AKQT98765432J","ZYXWVUTSRQPOJ") //Set these to be ordered, as their values
+        Set hand = $TRANSLATE($PIECE(line," ",1),"AKQT98765432J","ZYXWVUTSRQPOJ") //Set these to be ordered, as their values.
         Set bet= $PIECE(line," ",2)
         Set ^hands(hand)="" //store hand and bid
         Set cardrank  =..ParseValue2(hand)
-        Write !,hand_"  is a "_cardrank
         Set rankedcard(cardrank,hand)=bet
 
     }
@@ -214,11 +214,8 @@ ClassMethod Run2() As %Integer
             Write !,count_" "_$TRANSLATE(currenthand,"ZYXWVUTSRQPOJ","AKQT98765432J")_" bet "_rankedcard(rank,currenthand)_" won "_winnings
             Set accumulator = accumulator + winnings
         }
-
-
     }
-
-     Write !,"returning results: "_accumulator,!
+    Write !,"returning results: "_accumulator,!
     Quit accumulator
 }
 
